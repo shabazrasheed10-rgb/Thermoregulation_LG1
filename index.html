@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en" dir="ltr"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Physiology Quiz</title> 
+  <script src="https://cdn.tailwindcss.com"></script> 
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"> 
+  <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #E5E4E2;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: #E5E4E2;
+            padding-top: 20px;
+            padding-bottom: 1rem;
+            width: 100%;
+        }
+
+        .question-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .option-button {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+            color: #1f2937;
+        }
+
+        .option-button:hover:not(.answered) {
+            transform: translateX(4px);
+            background-color: #f3f4f6;
+        }
+
+        .feedback-icon {
+            width: 24px;
+            height: 24px;
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feedback-icon-visible {
+            opacity: 1;
+        }
+
+        #done-button-container {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f3f4f6;
+            display: none;
+        }
+
+        #done-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+    </style> 
+ </head> 
+ <body> 
+  <div id="main-wrapper" class="w-full max-w-2xl px-4"> 
+   <div class="sticky-header"> 
+    <div class="bg-white shadow-md rounded-xl p-4 border-b-4 border-[#6D9BCA]"> 
+     <div class="relative flex flex-col gap-1"> 
+      <h1 class="text-xl font-bold text-[#6D9BCA]">Thermoregulation_LG1</h1> <!-- Top-right small text --> <span class="absolute top-0 right-0 text-sm text-gray-400 font-medium">Physiology</span> 
+      <div class="flex justify-between items-center border-t border-gray-100 pt-2 mt-2"> 
+       <div class="text-sm font-semibold text-gray-700">
+         Score: <span id="score-display" class="text-green-600">0</span> / <span id="total-questions-header">0</span> 
+       </div> 
+       <div class="text-sm font-bold text-red-600" id="timer-display">
+         Time: 00:00 
+       </div> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+   <div id="questions-list" class="mt-4"></div> 
+   <div id="final-score-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-[200]"> 
+    <div class="bg-white rounded-xl p-8 text-center shadow-2xl w-full max-w-sm"> 
+     <h2 class="text-4xl font-extrabold text-[#6D9BCA] mb-4">Quiz Completed!</h2> 
+     <p class="text-xl text-gray-700 mb-2">You got:</p> 
+     <p class="text-6xl font-black text-green-700 mb-4" id="final-score-text">0 / 0</p> 
+     <p class="text-lg text-gray-600 mb-8">Total Time: <span id="final-time-text" class="font-bold text-red-600"></span></p> <button onclick="startOver()" class="px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition duration-150"> Start Over </button> 
+    </div> 
+   </div> 
+  </div> 
+  <script>
+        const quizData = [
+        
+ 
+
+  
+  {
+    question: "1. Which of the following is defined as the temperature of the deep tissues of the body and remains almost constant?",
+    options: [
+      "A. Surface temperature",
+      "B. Shell temperature",
+      "C. Core body temperature",
+      "D. Variable temperature",
+      "E. Subcutaneous temperature"
+    ],
+    answer: "C. Core body temperature"
+  },
+  {
+    question: "2. According to the lecture, what is the Normal Body Temperature (NBT) range?",
+    options: [
+      "A. 36.1-37.2 °C",
+      "B. 35.0-36.0 °C",
+      "C. 37.0-38.5 °C",
+      "D. 34.5-35.5 °C",
+      "E. 36.5-37.5 °C"
+    ],
+    answer: "A. 36.1-37.2 °C"
+  },
+  {
+    question: "3. Heat balance is achieved when which of the following conditions is met?",
+    options: [
+      "A. Thermolysis exceeds thermogenesis",
+      "B. Heat production is less than heat loss",
+      "C. Shivering is at its maximum",
+      "D. Radiation is the only form of heat loss",
+      "E. Heat production equals heat loss"
+    ],
+    answer: "E. Heat production equals heat loss"
+  },
+  {
+    question: "4. Which temperature measurement is typically 0.5 °C higher than oral and accurately reflects core temperature?",
+    options: [
+      "A. Axillary temperature",
+      "B. Rectal temperature",
+      "C. Skin surface temperature",
+      "D. Shell temperature",
+      "E. Forehead temperature"
+    ],
+    answer: "B. Rectal temperature"
+  },
+  {
+    question: "5. Basal Metabolic Rate (BMR) must be measured while the body is in which state?",
+    options: [
+      "A. During peak physical activity",
+      "B. Immediately after a protein-rich meal",
+      "C. Under quiet, resting, and fasting conditions",
+      "D. During the REM stage of sleep",
+      "E. While exposed to freezing temperatures"
+    ],
+    answer: "C. Under quiet, resting, and fasting conditions"
+  },
+  {
+    question: "6. During strenuous exercise, the metabolic rate can increase to how many times the basal rate?",
+    options: [
+      "A. 5 times",
+      "B. 10 times",
+      "C. 15 times",
+      "D. 20 times",
+      "E. 2 times"
+    ],
+    answer: "D. 20 times"
+  },
+  {
+    question: "7. Which fat source is found in infants and is a significant source of heat production (Chemical Thermogenesis)?",
+    options: [
+      "A. Brown fat",
+      "B. White fat",
+      "C. Visceral fat",
+      "D. Subcutaneous fat",
+      "E. Skeletal fat"
+    ],
+    answer: "A. Brown fat"
+  },
+  {
+    question: "8. Which hormones are considered the primary regulators of BMR by stimulating aerobic cellular respiration?",
+    options: [
+      "A. Insulin and Glucagon",
+      "B. Epinephrine and Norepinephrine",
+      "C. Thyroid hormones (T3 and T4)",
+      "D. Cortisol and Aldosterone",
+      "E. Growth hormone and Prolactin"
+    ],
+    answer: "C. Thyroid hormones (T3 and T4)"
+  },
+  {
+    question: "9. The stimulation of the sympathetic nervous system increases metabolic rate by releasing which neurotransmitter?",
+    options: [
+      "A. Acetylcholine",
+      "B. Norepinephrine",
+      "C. Dopamine",
+      "D. Serotonin",
+      "E. GABA"
+    ],
+    answer: "B. Norepinephrine"
+  },
+  {
+    question: "10. Which factor would lead to a DECREASE in the basal metabolic rate?",
+    options: [
+      "A. Fever",
+      "B. Pregnancy",
+      "C. Lactation",
+      "D. Exercise",
+      "E. Malnutrition"
+    ],
+    answer: "E. Malnutrition"
+  },
+  {
+    question: "11. Why is the metabolic rate of a child roughly double that of an elderly person in relation to size?",
+    options: [
+      "A. Children have more white fat",
+      "B. Children have less surface area",
+      "C. High rates of reactions related to growth",
+      "D. Elderly people have higher thyroxine levels",
+      "E. Children shiver more frequently"
+    ],
+    answer: "C. High rates of reactions related to growth"
+  },
+  {
+    question: "12. Which mechanism involves the exchange of heat via infrared rays without physical contact?",
+    options: [
+      "A. Conduction",
+      "B. Convection",
+      "C. Evaporation",
+      "D. Radiation",
+      "E. Sublimation"
+    ],
+    answer: "D. Radiation"
+  },
+  {
+    question: "13. At a room temperature of 21°C, what percentage of heat loss occurs through radiation?",
+    options: [
+      "A. 60%",
+      "B. 15%",
+      "C. 3%",
+      "D. 22%",
+      "E. 80%"
+    ],
+    answer: "A. 60%"
+  },
+  {
+    question: "14. Heat exchange that occurs between two materials in direct contact is known as:",
+    options: [
+      "A. Radiation",
+      "B. Conduction",
+      "C. Convection",
+      "D. Evaporation",
+      "E. Insulation"
+    ],
+    answer: "B. Conduction"
+  },
+  {
+    question: "15. Which process describes the transfer of heat by the movement of a gas or liquid?",
+    options: [
+      "A. Convection",
+      "B. Conduction",
+      "C. Radiation",
+      "D. Sublimation",
+      "E. Vaporization"
+    ],
+    answer: "A. Convection"
+  },
+  {
+    question: "16. When environmental temperature is high, what becomes the main mechanism of heat loss?",
+    options: [
+      "A. Radiation",
+      "B. Conduction",
+      "C. Convection",
+      "D. Evaporation",
+      "E. Piloerection"
+    ],
+    answer: "D. Evaporation"
+  },
+  {
+    question: "17. Where is the body’s 'thermostat' (preoptic area) located?",
+    options: [
+      "A. Thalamus",
+      "B. Medulla oblongata",
+      "C. Hypothalamus",
+      "D. Pituitary gland",
+      "E. Pons"
+    ],
+    answer: "C. Hypothalamus"
+  },
+  {
+    question: "18. Central thermoreceptors are responsible for monitoring the temperature of the:",
+    options: [
+      "A. Skin surface",
+      "B. Blood",
+      "C. Skeletal muscle",
+      "D. External air",
+      "E. Digestive tract"
+    ],
+    answer: "B. Blood"
+  },
+  {
+    question: "19. When the core temperature declines, the hypothalamus stimulates the anterior pituitary to release:",
+    options: [
+      "A. Insulin",
+      "B. TRH",
+      "C. TSH",
+      "D. Thyroxine",
+      "E. Epinephrine"
+    ],
+    answer: "C. TSH"
+  },
+  {
+    question: "20. How does vasoconstriction help in maintaining body temperature during cold exposure?",
+    options: [
+      "A. It increases sweat production",
+      "B. It increases blood flow to the skin",
+      "C. It lowers the metabolic rate",
+      "D. It decreases the flow of warm blood to the skin",
+      "E. It promotes heat loss via radiation"
+    ],
+    answer: "D. It decreases the flow of warm blood to the skin"
+  },
+  {
+    question: "21. During maximal shivering, heat production can increase by about how many times the basal rate?",
+    options: [
+      "A. 2 times",
+      "B. 4 times",
+      "C. 6 times",
+      "D. 10 times",
+      "E. 20 times"
+    ],
+    answer: "B. 4 times"
+  },
+  {
+    question: "22. Contraction of the Arrector Pili muscle leads to which phenomenon?",
+    options: [
+      "A. Sweating",
+      "B. Vasodilation",
+      "C. Goose bumps",
+      "D. Shivering",
+      "E. Muscle atrophy"
+    ],
+    answer: "C. Goose bumps"
+  },
+  {
+    question: "23. If core body temperature rises above normal, which hypothalamic center is stimulated?",
+    options: [
+      "A. Heat-promoting center",
+      "B. Hunger center",
+      "C. Satiety center",
+      "D. Heat-losing center",
+      "E. Respiratory center"
+    ],
+    answer: "D. Heat-losing center"
+  },
+  {
+    question: "24. The activation of sweat glands by the hypothalamus occurs via which nerves?",
+    options: [
+      "A. Parasympathetic nerves",
+      "B. Somatic nerves",
+      "C. Sympathetic nerves",
+      "D. Phrenic nerves",
+      "E. Cranial nerves"
+    ],
+    answer: "C. Sympathetic nerves"
+  },
+  {
+    question: "25. Which of the following is a behavioral adjustment to re-establish comfort in the cold?",
+    options: [
+      "A. Vasodilation",
+      "B. Curling up",
+      "C. Increasing surface area",
+      "D. Taking off clothes",
+      "E. Decreasing thyroid activity"
+    ],
+    answer: "B. Curling up"
+  }
+
+
+
+        ];
+
+        let score = 0;
+        let timeSeconds = 0;
+        let timerId;
+        const totalQuestions = quizData.length;
+        let answeredQuestions = new Set();
+
+        const correctIconSVG = `<svg class="feedback-icon text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+        const incorrectIconSVG = `<svg class="feedback-icon text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
+
+        function startStopwatch() {
+            timerId = setInterval(() => {
+                timeSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeSeconds / 60);
+            const seconds = timeSeconds % 60;
+            const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timer-display').textContent = `Time: ${display}`;
+            return display;
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('questions-list');
+            document.getElementById('total-questions-header').textContent = totalQuestions;
+
+            quizData.forEach((data, index) => {
+                const isLast = index === totalQuestions - 1;
+                const questionCard = document.createElement('div');
+                questionCard.className = "question-card";
+                
+                let innerHTML = `
+                    <p class="text-xl font-bold text-gray-800 mb-6">${data.question}</p>
+                    <div id="options-container-${index}" class="space-y-4"></div>
+                `;
+
+                if (isLast) {
+                    innerHTML += `
+                        <div id="done-button-container">
+                            <button id="done-btn" disabled onclick="showFinalScore()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition duration-150 ease-in-out">
+                                Done
+                            </button>
+                        </div>
+                    `;
+                }
+
+                questionCard.innerHTML = innerHTML;
+                container.appendChild(questionCard);
+
+                const optionsContainer = document.getElementById(`options-container-${index}`);
+                data.options.forEach(optionText => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-button w-full p-4 bg-gray-50 rounded-xl font-medium text-gray-800 border border-gray-200';
+                    btn.innerHTML = `<span class="flex-1">${optionText}</span><span class="feedback-placeholder"></span>`;
+                    btn.onclick = () => handleSelection(index, optionText, btn);
+                    optionsContainer.appendChild(btn);
+                });
+            });
+            startStopwatch();
+        }
+
+        function handleSelection(qIndex, selectedText, selectedBtn) {
+            if (answeredQuestions.has(qIndex)) return;
+            answeredQuestions.add(qIndex);
+
+            const correct = quizData[qIndex].answer;
+            const isCorrect = selectedText === correct;
+            
+            if (isCorrect) {
+                score++;
+                document.getElementById('score-display').textContent = score;
+            }
+
+            const container = document.getElementById(`options-container-${qIndex}`);
+            const buttons = container.querySelectorAll('.option-button');
+
+            buttons.forEach(btn => {
+                btn.classList.add('answered');
+                btn.disabled = true;
+                const optText = btn.innerText.trim();
+                const iconPlaceholder = btn.querySelector('.feedback-placeholder');
+
+                if (optText === correct) {
+                    btn.classList.add('bg-green-100', 'border-green-400');
+                    iconPlaceholder.innerHTML = correctIconSVG;
+                    iconPlaceholder.querySelector('.feedback-icon').classList.add('feedback-icon-visible');
+                } else if (btn === selectedBtn && !isCorrect) {
+                    btn.classList.add('bg-red-100', 'border-red-400');
+                    iconPlaceholder.innerHTML = incorrectIconSVG;
+                    iconPlaceholder.querySelector('.feedback-icon').classList.add('feedback-icon-visible');
+                }
+            });
+
+            if (qIndex === totalQuestions - 1) {
+                document.getElementById('done-button-container').style.display = 'block';
+            }
+
+            if (answeredQuestions.size === totalQuestions) {
+                const doneBtn = document.getElementById('done-btn');
+                if (doneBtn) doneBtn.disabled = false;
+            }
+        }
+
+        function showFinalScore() {
+            clearInterval(timerId);
+            const finalTime = updateTimerDisplay();
+            document.getElementById('final-score-text').textContent = `${score} / ${totalQuestions}`;
+            document.getElementById('final-time-text').textContent = finalTime;
+            document.getElementById('final-score-modal').classList.remove('hidden');
+        }
+
+        function startOver() {
+            window.location.href = "#";
+            window.location.reload();
+        }
+
+        window.onload = renderQuiz;
+    </script> 
+ </body>
+</html>
